@@ -2,7 +2,13 @@ package com.bt.customer.service;
 
 import com.bt.customer.dto.AuthResponse;
 import com.bt.customer.dto.LoginRequest;
+import com.bt.customer.dto.NameDTO;
+import com.bt.customer.dto.MobileNumberDTO;
+import com.bt.customer.dto.AddressDTO;
 import com.bt.customer.dto.RegisterRequest;
+import com.bt.customer.entity.Name;
+import com.bt.customer.entity.MobileNumber;
+import com.bt.customer.entity.Address;
 import com.bt.customer.entity.User;
 import com.bt.customer.exception.InvalidCredentialsException;
 import com.bt.customer.exception.UserAlreadyExistsException;
@@ -61,14 +67,38 @@ class AuthServiceTest {
         private RegisterRequest registerRequest;
         private LoginRequest loginRequest;
         private User user;
+        private Name name;
+        private MobileNumber mobileNumber;
+        private Address address;
 
         @BeforeEach
         void setUp() {
+                NameDTO nameDTO = NameDTO.builder()
+                                .firstName("Test")
+                                .middleName("M")
+                                .lastName("User")
+                                .build();
+
+                MobileNumberDTO mobileDTO = MobileNumberDTO.builder()
+                                .countryCode("+965")
+                                .number("12345678")
+                                .build();
+
+                AddressDTO addressDTO = AddressDTO.builder()
+                                .line1("Apartment 4B")
+                                .line2("Building A")
+                                .street("Main Street")
+                                .city("Kuwait City")
+                                .state("Al Asimah")
+                                .pinCode("12345")
+                                .build();
+
                 registerRequest = RegisterRequest.builder()
                                 .email("test@example.com")
                                 .password("password123")
-                                .fullName("Test User")
-                                .phoneNumber("+1234567890")
+                                .name(nameDTO)
+                                .mobileNumber(mobileDTO)
+                                .address(addressDTO)
                                 .role(User.Role.CUSTOMER)
                                 .build();
 
@@ -77,12 +107,36 @@ class AuthServiceTest {
                                 .password("password123")
                                 .build();
 
+                name = Name.builder()
+                                .id(1L)
+                                .firstName("Test")
+                                .middleName("M")
+                                .lastName("User")
+                                .build();
+
+                mobileNumber = MobileNumber.builder()
+                                .id(1L)
+                                .countryCode("+965")
+                                .number("12345678")
+                                .build();
+
+                address = Address.builder()
+                                .id(1L)
+                                .line1("Apartment 4B")
+                                .line2("Building A")
+                                .street("Main Street")
+                                .city("Kuwait City")
+                                .state("Al Asimah")
+                                .pinCode("12345")
+                                .build();
+
                 user = User.builder()
                                 .id(1L)
                                 .password("encoded-password")
-                                .fullName("Test User")
+                                .name(name)
                                 .email("test@example.com")
-                                .phoneNumber("+1234567890")
+                                .mobileNumber(mobileNumber)
+                                .address(address)
                                 .role(User.Role.CUSTOMER)
                                 .active(true)
                                 .build();
@@ -94,19 +148,19 @@ class AuthServiceTest {
                 when(userRepository.existsByEmail(anyString())).thenReturn(false);
                 when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
                 when(userRepository.save(any(User.class))).thenReturn(user);
-                when(tokenProvider.generateTokenForUser(anyString(), anyString())).thenReturn("jwt-token");
+                when(redisSessionService.createSession(any(User.class))).thenReturn("session-id");
 
                 AuthResponse response = authService.register(registerRequest);
 
                 assertNotNull(response);
-                assertEquals("jwt-token", response.getToken());
+                assertEquals("session-id", response.getToken());
                 assertEquals("test@example.com", response.getEmail());
                 assertEquals("CUSTOMER", response.getRole());
                 assertEquals("User registered successfully", response.getMessage());
 
                 verify(userRepository, times(1)).existsByEmail("test@example.com");
                 verify(userRepository, times(1)).save(any(User.class));
-                verify(tokenProvider, times(1)).generateTokenForUser("test@example.com", "CUSTOMER");
+                verify(redisSessionService, times(1)).createSession(any(User.class));
         }
 
         @Test
@@ -130,7 +184,7 @@ class AuthServiceTest {
                 when(userRepository.existsByEmail(anyString())).thenReturn(false);
                 when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
                 when(userRepository.save(any(User.class))).thenReturn(user);
-                when(tokenProvider.generateTokenForUser(anyString(), anyString())).thenReturn("jwt-token");
+                when(redisSessionService.createSession(any(User.class))).thenReturn("session-id");
 
                 AuthResponse response = authService.register(registerRequest);
 

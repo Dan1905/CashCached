@@ -18,17 +18,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false, length = 50)
+    private String username;
+
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 100)
-    private String fullName;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "name_id", referencedColumnName = "id")
+    private Name name;
 
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(length = 15)
-    private String phoneNumber;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "mobile_number_id", referencedColumnName = "id")
+    private MobileNumber mobileNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -37,8 +42,9 @@ public class User {
     @Column(name = "preferred_currency", length = 10)
     private String preferredCurrency;
 
-    @Column(length = 500)
-    private String address;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
+    private Address address;
 
     @Column(length = 12)
     private String aadhaarNumber;

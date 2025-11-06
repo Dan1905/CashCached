@@ -1,8 +1,9 @@
 package com.bt.customer.service;
 
 import com.bt.customer.dto.AuthResponse;
+import com.bt.customer.entity.Name;
 import com.bt.customer.entity.User;
-import com.bt.customer.exception.InvalidCredentialsException;
+import com.bt.customer.exception.MagicLinkException;
 import com.bt.customer.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,10 +54,15 @@ public class MagicLinkServiceTest {
 
         @Test
         public void testSendMagicLink() {
+                Name name = Name.builder()
+                                .firstName("Test")
+                                .lastName("User")
+                                .build();
+
                 User user = User.builder()
                                 .id(1L)
                                 .email("test@example.com")
-                                .fullName("Test User")
+                                .name(name)
                                 .active(true)
                                 .build();
 
@@ -77,7 +83,7 @@ public class MagicLinkServiceTest {
                 when(userRepository.findByEmail("nonexistent@example.com"))
                                 .thenReturn(Optional.empty());
 
-                assertThrows(InvalidCredentialsException.class,
+                assertThrows(MagicLinkException.class,
                                 () -> magicLinkService.sendMagicLink("nonexistent@example.com"));
         }
 
@@ -99,16 +105,22 @@ public class MagicLinkServiceTest {
                 when(valueOperations.get("magic_link:" + token))
                                 .thenReturn(null);
 
-                assertThrows(InvalidCredentialsException.class, () -> magicLinkService.verifyMagicLink(token));
+                assertThrows(MagicLinkException.class, () -> magicLinkService.verifyMagicLink(token));
         }
 
         @Test
         public void testAuthenticateWithMagicLink() {
                 String token = "valid-token";
+                
+                Name name = Name.builder()
+                                .firstName("Test")
+                                .lastName("User")
+                                .build();
+
                 User user = User.builder()
                                 .id(1L)
                                 .email("test@example.com")
-                                .fullName("Test User")
+                                .name(name)
                                 .active(true)
                                 .role(User.Role.CUSTOMER)
                                 .build();
@@ -140,17 +152,23 @@ public class MagicLinkServiceTest {
                 when(userRepository.findByEmail("test@example.com"))
                                 .thenReturn(Optional.of(user));
 
-                assertThrows(InvalidCredentialsException.class,
+                assertThrows(MagicLinkException.class,
                                 () -> magicLinkService.authenticateWithMagicLink(token));
         }
 
         @Test
         public void testVerifyAndAuthenticateWithMagicLink() {
                 String token = "valid-token";
+                
+                Name name = Name.builder()
+                                .firstName("Test")
+                                .lastName("User")
+                                .build();
+
                 User user = User.builder()
                                 .id(1L)
                                 .email("test@example.com")
-                                .fullName("Test User")
+                                .name(name)
                                 .active(true)
                                 .role(User.Role.CUSTOMER)
                                 .build();

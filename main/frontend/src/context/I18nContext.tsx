@@ -451,9 +451,73 @@ const dict: Dict = {
     en: "Preferred Currency",
     ja: "希望通貨",
   },
+  "auth.field.countryCode": {
+    en: "Country Code",
+    ja: "国コード",
+  },
+  "auth.field.addressLine1": {
+    en: "Address Line 1",
+    ja: "住所1",
+  },
+  "auth.field.addressLine2": {
+    en: "Address Line 2 (Optional)",
+    ja: "住所2（任意）",
+  },
+  "auth.field.street": {
+    en: "Street",
+    ja: "通り",
+  },
+  "auth.field.city": {
+    en: "City",
+    ja: "市区町村",
+  },
+  "auth.field.state": {
+    en: "State",
+    ja: "都道府県",
+  },
+  "auth.field.pinCode": {
+    en: "Pin Code",
+    ja: "郵便番号",
+  },
+  "auth.field.country": {
+    en: "Country",
+    ja: "国",
+  },
   "auth.placeholder.address": {
     en: "Enter your residential address",
     ja: "住所を入力してください",
+  },
+  "auth.placeholder.countryCode": {
+    en: "+965",
+    ja: "+965",
+  },
+  "auth.placeholder.addressLine1": {
+    en: "Apartment, Building",
+    ja: "アパート、建物",
+  },
+  "auth.placeholder.addressLine2": {
+    en: "Floor, Suite",
+    ja: "階、部屋番号",
+  },
+  "auth.placeholder.street": {
+    en: "Street name",
+    ja: "通りの名前",
+  },
+  "auth.placeholder.city": {
+    en: "City",
+    ja: "市区町村",
+  },
+  "auth.placeholder.state": {
+    en: "State",
+    ja: "都道府県",
+  },
+  "auth.placeholder.pinCode": {
+    en: "12345",
+    ja: "12345",
+  },
+  "auth.placeholder.country": {
+    en: "Country",
+    ja: "国",
   },
   "auth.placeholder.aadhaarNumber": {
     en: "Enter 12-digit Aadhaar number",

@@ -2,7 +2,6 @@ package com.bt.customer.service;
 
 import com.bt.customer.dto.AuthResponse;
 import com.bt.customer.entity.User;
-import com.bt.customer.exception.InvalidCredentialsException;
 import com.bt.customer.exception.MagicLinkException;
 import com.bt.customer.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +51,8 @@ public class MagicLinkService {
 
         String magicLink = frontendUrl + "/auth/magic-link?token=" + token;
 
-        sendMagicLinkEmail(email, magicLink, user.getFullName());
+        String fullName = user.getName() != null ? user.getName().getFullName() : "User";
+        sendMagicLinkEmail(email, magicLink, fullName);
     }
 
     public String verifyMagicLink(String token) {
@@ -63,7 +63,7 @@ public class MagicLinkService {
 
         if (email == null) {
             log.warn("Magic link token not found or expired: {}", token);
-            throw new InvalidCredentialsException("Invalid or expired magic link");
+            throw new MagicLinkException("Invalid or expired magic link");
         }
 
         redisTemplate.delete(magicLinkKey);
@@ -75,10 +75,10 @@ public class MagicLinkService {
         String email = verifyMagicLink(token);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+                .orElseThrow(() -> new MagicLinkException("User not found"));
 
         if (!user.getActive()) {
-            throw new InvalidCredentialsException("User account is inactive");
+            throw new MagicLinkException("User account is inactive");
         }
 
         String sessionId = redisSessionService.createSession(user);
@@ -89,10 +89,10 @@ public class MagicLinkService {
         String email = verifyMagicLink(token);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+                .orElseThrow(() -> new MagicLinkException("User not found"));
 
         if (!user.getActive()) {
-            throw new InvalidCredentialsException("User account is inactive");
+            throw new MagicLinkException("User account is inactive");
         }
 
         String sessionId = redisSessionService.createSession(user);

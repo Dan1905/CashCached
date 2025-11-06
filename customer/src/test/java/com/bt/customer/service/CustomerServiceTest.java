@@ -1,7 +1,13 @@
 package com.bt.customer.service;
 
+import com.bt.customer.dto.NameDTO;
+import com.bt.customer.dto.AddressDTO;
+import com.bt.customer.dto.MobileNumberDTO;
 import com.bt.customer.dto.UpdateProfileRequest;
 import com.bt.customer.dto.UserProfileResponse;
+import com.bt.customer.entity.Name;
+import com.bt.customer.entity.Address;
+import com.bt.customer.entity.MobileNumber;
 import com.bt.customer.entity.User;
 import com.bt.customer.exception.UserNotFoundException;
 import com.bt.customer.repository.UserRepository;
@@ -44,15 +50,42 @@ class CustomerServiceTest {
 
     private User user;
     private UserPrincipal userPrincipal;
+    private Name name;
+    private Address address;
+    private MobileNumber mobileNumber;
 
     @BeforeEach
     void setUp() {
+        name = Name.builder()
+                .id(1L)
+                .firstName("Test")
+                .middleName("M")
+                .lastName("User")
+                .build();
+
+        address = Address.builder()
+                .id(1L)
+                .line1("Apartment 4B")
+                .line2("Building A")
+                .street("Main Street")
+                .city("Kuwait City")
+                .state("Al Asimah")
+                .pinCode("12345")
+                .build();
+
+        mobileNumber = MobileNumber.builder()
+                .id(1L)
+                .countryCode("+965")
+                .number("12345678")
+                .build();
+
         user = User.builder()
                 .id(1L)
                 .password("encoded-password")
-                .fullName("Test User")
+                .name(name)
                 .email("test@example.com")
-                .phoneNumber("+1234567890")
+                .mobileNumber(mobileNumber)
+                .address(address)
                 .role(User.Role.CUSTOMER)
                 .active(true)
                 .createdAt(LocalDateTime.now())
@@ -73,7 +106,8 @@ class CustomerServiceTest {
         UserProfileResponse response = customerService.getCurrentUserProfile();
 
         assertNotNull(response);
-        assertEquals("Test User", response.getFullName());
+        assertNotNull(response.getName());
+        assertEquals("Test", response.getName().getFirstName());
         assertEquals("test@example.com", response.getEmail());
         assertEquals("CUSTOMER", response.getRole());
 
@@ -95,9 +129,14 @@ class CustomerServiceTest {
     @Test
     @DisplayName("Should get all customers successfully")
     void shouldGetAllCustomers() {
+        Name name2 = Name.builder()
+                .firstName("Customer")
+                .lastName("Two")
+                .build();
+
         User customer2 = User.builder()
                 .id(2L)
-                .fullName("Customer Two")
+                .name(name2)
                 .email("customer2@example.com")
                 .role(User.Role.CUSTOMER)
                 .build();
@@ -117,10 +156,20 @@ class CustomerServiceTest {
     @Test
     @DisplayName("Should update profile successfully")
     void shouldUpdateProfileSuccessfully() {
+        NameDTO nameDTO = NameDTO.builder()
+                .firstName("Updated")
+                .lastName("Name")
+                .build();
+
+        MobileNumberDTO mobileDTO = MobileNumberDTO.builder()
+                .countryCode("+965")
+                .number("98765432")
+                .build();
+
         UpdateProfileRequest request = UpdateProfileRequest.builder()
-                .fullName("Updated Name")
+                .name(nameDTO)
                 .email("updated@example.com")
-                .phoneNumber("+9876543210")
+                .mobileNumber(mobileDTO)
                 .build();
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -139,8 +188,13 @@ class CustomerServiceTest {
     @Test
     @DisplayName("Should update only provided fields in profile")
     void shouldUpdateOnlyProvidedFields() {
+        NameDTO nameDTO = NameDTO.builder()
+                .firstName("Updated")
+                .lastName("Name")
+                .build();
+
         UpdateProfileRequest request = UpdateProfileRequest.builder()
-                .fullName("Updated Name")
+                .name(nameDTO)
                 .build();
 
         when(securityContext.getAuthentication()).thenReturn(authentication);

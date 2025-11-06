@@ -52,18 +52,21 @@ public class CustomerReportService {
 
     private String convertCustomersToCsv(List<User> customers) {
         StringWriter stringWriter = new StringWriter();
-        String[] headers = { "ID", "Username", "Full Name", "Email", "Phone Number", "Role",
+        String[] headers = { "ID", "Full Name", "Email", "Mobile Number", "Role",
                 "Preferred Currency", "Active", "Created At", "Updated At" };
 
         try (CSVPrinter csvPrinter = new CSVPrinter(stringWriter, CSVFormat.DEFAULT)) {
             csvPrinter.printRecord((Object[]) headers);
 
             for (User customer : customers) {
+                String fullName = customer.getName() != null ? customer.getName().getFullName() : "";
+                String mobileNumber = customer.getMobileNumber() != null ? customer.getMobileNumber().getFullNumber() : "";
+                
                 csvPrinter.printRecord(
                         customer.getId(),
-                        customer.getFullName(),
+                        fullName,
                         customer.getEmail(),
-                        customer.getPhoneNumber(),
+                        mobileNumber,
                         customer.getRole(),
                         customer.getPreferredCurrency(),
                         customer.getActive(),

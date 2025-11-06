@@ -90,11 +90,12 @@ public class AuthService {
         User.CustomerClassification classification = computeClassification(request.getDateOfBirth());
 
         User user = User.builder()
+                .username(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .fullName(request.getFullName())
+                .name(request.getName() != null ? request.getName().toEntity() : null)
                 .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .address(request.getAddress())
+                .mobileNumber(request.getMobileNumber() != null ? request.getMobileNumber().toEntity() : null)
+                .address(request.getAddress() != null ? request.getAddress().toEntity() : null)
                 .aadhaarNumber(request.getAadhaarNumber())
                 .panNumber(request.getPanNumber())
                 .dateOfBirth(request.getDateOfBirth())

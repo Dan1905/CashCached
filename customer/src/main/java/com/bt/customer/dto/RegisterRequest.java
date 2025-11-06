@@ -2,8 +2,10 @@ package com.bt.customer.dto;
 
 import com.bt.customer.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -20,23 +22,23 @@ public class RegisterRequest {
     @Schema(description = "User password (will be encrypted)", example = "SecurePass123!")
     private String password;
 
-    @NotBlank(message = "Full name is required")
-    @Size(max = 100, message = "Full name cannot exceed 100 characters")
-    @Schema(description = "Full name of the user", example = "John Doe")
-    private String fullName;
+    @NotNull(message = "Name information is required")
+    @Valid
+    @Schema(description = "User's name details")
+    private NameDTO name;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     @Schema(description = "Email address for communication", example = "john.doe@example.com")
     private String email;
 
-    @Size(max = 15, message = "Phone number cannot exceed 15 characters")
-    @Schema(description = "Contact phone number", example = "+1234567890")
-    private String phoneNumber;
+    @Valid
+    @Schema(description = "Mobile number details")
+    private MobileNumberDTO mobileNumber;
 
-    @Size(max = 500, message = "Address cannot exceed 500 characters")
-    @Schema(description = "Residential address", example = "123 Main St, City, Country")
-    private String address;
+    @Valid
+    @Schema(description = "Address details")
+    private AddressDTO address;
 
     @Size(min = 12, max = 12, message = "Aadhaar must be 12 digits")
     @Schema(description = "12-digit Aadhaar number", example = "123456789012")

@@ -79,8 +79,14 @@ public class CustomerController {
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
     })
     public ResponseEntity<StatusResponse> getStatus() {
-        String role = customerService.getCurrentUserRole();
-        String email = customerService.getCurrentUser().getEmail();
+        String role = null;
+        String email = null;
+        
+        try {
+            role = customerService.getCurrentUserRole();
+            email = customerService.getCurrentUser().getEmail();
+        } catch (Exception e) {
+        }
 
         StatusResponse status = StatusResponse.builder()
                 .status("OPERATIONAL")

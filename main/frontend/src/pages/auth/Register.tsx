@@ -38,15 +38,24 @@ import {
 const registerSchema = z
   .object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
+    middleName: z.string().optional(),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
+    countryCode: z
+      .string()
+      .regex(/^\+[0-9]{1,4}$/, "Country code must start with + and contain 1-4 digits"),
     phoneNumber: z
       .string()
-      .min(5, "Phone number is required")
-      .max(20, "Phone number cannot exceed 20 characters"),
-    address: z.string().max(500, "Address cannot exceed 500 characters"),
+      .regex(/^[0-9]{7,15}$/, "Phone number must contain 7-15 digits"),
+    addressLine1: z.string().min(1, "Address line 1 is required").max(100, "Address line 1 cannot exceed 100 characters"),
+    addressLine2: z.string().max(100, "Address line 2 cannot exceed 100 characters").optional(),
+    street: z.string().min(1, "Street is required").max(100, "Street cannot exceed 100 characters"),
+    city: z.string().min(1, "City is required").max(50, "City cannot exceed 50 characters"),
+    state: z.string().min(1, "State is required").max(50, "State cannot exceed 50 characters"),
+    pinCode: z.string().min(1, "Pin code is required").regex(/^[0-9]{4,10}$/, "Pin code must be 4-10 digits"),
+    country: z.string().min(1, "Country is required").max(50, "Country cannot exceed 50 characters"),
     dateOfBirth: z.string().refine((date) => {
       const d = new Date(date);
       return d < new Date();
@@ -79,12 +88,20 @@ export function Register() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       firstName: "",
+      middleName: "",
       lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
+      countryCode: "",
       phoneNumber: "",
-      address: "",
+      addressLine1: "",
+      addressLine2: "",
+      street: "",
+      city: "",
+      state: "",
+      pinCode: "",
+      country: "",
       dateOfBirth: "",
       aadhaarNumber: "",
       panNumber: "",
@@ -98,11 +115,19 @@ export function Register() {
     try {
       await register({
         firstName: data.firstName,
+        middleName: data.middleName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
+        countryCode: data.countryCode,
         phoneNumber: data.phoneNumber,
-        address: data.address,
+        line1: data.addressLine1,
+        line2: data.addressLine2,
+        street: data.street,
+        city: data.city,
+        state: data.state,
+        pinCode: data.pinCode,
+        country: data.country,
         dateOfBirth: data.dateOfBirth,
         aadhaarNumber: data.aadhaarNumber,
         panNumber: data.panNumber,
@@ -201,27 +226,49 @@ export function Register() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="register-phone">
-                        {t("auth.field.phone")}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="register-phone"
-                          type="tel"
-                          placeholder={t("auth.placeholder.phone")}
-                          {...field}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="countryCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="register-countryCode">
+                          {t("auth.field.countryCode")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="register-countryCode"
+                            placeholder={t("auth.placeholder.countryCode")}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel htmlFor="register-phone">
+                          {t("auth.field.phone")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="register-phone"
+                            type="tel"
+                            placeholder={t("auth.placeholder.phone")}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="dateOfBirth"
@@ -244,16 +291,16 @@ export function Register() {
                 />
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="addressLine1"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="register-address">
-                        {t("auth.field.address")}
+                      <FormLabel htmlFor="register-addressLine1">
+                        {t("auth.field.addressLine1")}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id="register-address"
-                          placeholder={t("auth.placeholder.address")}
+                          id="register-addressLine1"
+                          placeholder={t("auth.placeholder.addressLine1")}
                           {...field}
                           disabled={isLoading}
                         />
@@ -262,6 +309,130 @@ export function Register() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="addressLine2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="register-addressLine2">
+                        {t("auth.field.addressLine2")}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id="register-addressLine2"
+                          placeholder={t("auth.placeholder.addressLine2")}
+                          {...field}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="street"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="register-street">
+                          {t("auth.field.street")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="register-street"
+                            placeholder={t("auth.placeholder.street")}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="register-city">
+                          {t("auth.field.city")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="register-city"
+                            placeholder={t("auth.placeholder.city")}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="register-state">
+                          {t("auth.field.state")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="register-state"
+                            placeholder={t("auth.placeholder.state")}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="pinCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="register-pinCode">
+                          {t("auth.field.pinCode")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="register-pinCode"
+                            placeholder={t("auth.placeholder.pinCode")}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="register-country">
+                          {t("auth.field.country")}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="register-country"
+                            placeholder={t("auth.placeholder.country")}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}

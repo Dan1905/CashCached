@@ -26,7 +26,7 @@ interface AuthContextType {
   token: string | null;
   login: (username: string, password: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
   verifyOtp: (username: string, code: string) => Promise<void>;
@@ -41,9 +41,17 @@ interface RegisterData {
   email: string;
   password: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
+  countryCode: string;
   phoneNumber: string;
-  address?: string;
+  line1?: string;
+  line2?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  pinCode?: string;
+  country?: string;
   dateOfBirth?: string;
   aadhaarNumber?: string;
   panNumber?: string;
@@ -191,10 +199,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const payload = {
         password: userData.password,
-        fullName: `${userData.firstName} ${userData.lastName}`,
+        name: {
+          firstName: userData.firstName,
+          middleName: userData.middleName || null,
+          lastName: userData.lastName,
+        },
         email: userData.email,
-        phoneNumber: userData.phoneNumber,
-        address: userData.address,
+        mobileNumber: {
+          countryCode: userData.countryCode,
+          number: userData.phoneNumber,
+        },
+        address: userData.line1 ? {
+          line1: userData.line1,
+          line2: userData.line2 || null,
+          street: userData.street || "",
+          city: userData.city || "",
+          state: userData.state || "",
+          pinCode: userData.pinCode || "",
+          country: userData.country || "",
+        } : null,
         dateOfBirth: userData.dateOfBirth,
         aadhaarNumber: userData.aadhaarNumber,
         panNumber: userData.panNumber,
@@ -202,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: userData.role,
       };
       const response = await api.post("/api/auth/register", payload);
-      const { token: sessionId, role: responseRole } = response.data;
+      const { token: sessionId, email, role: responseRole } = response.data;
 
       localStorage.setItem("token", sessionId);
       localStorage.setItem("userRole", responseRole || "CUSTOMER");
@@ -211,14 +234,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser({
         id: "",
-        email: userData.email,
+        email: email || userData.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
         role:
           (responseRole as "CUSTOMER" | "BANKOFFICER" | "ADMIN") ||
           userData.role,
         preferredCurrency: userData.preferredCurrency || "KWD",
-        address: userData.address,
         aadhaarNumber: userData.aadhaarNumber,
         panNumber: userData.panNumber,
         dateOfBirth: userData.dateOfBirth,
@@ -228,7 +250,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+    } catch {
+      // Continue with local cleanup even if API fails
+    }
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     setToken(null);

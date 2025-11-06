@@ -18,20 +18,20 @@ public class UserProfileResponse {
     @Schema(description = "User ID", example = "1")
     private Long id;
 
-    @Schema(description = "Full name", example = "John Doe")
-    private String fullName;
+    @Schema(description = "User's name details")
+    private NameDTO name;
 
     @Schema(description = "Email address", example = "john.doe@example.com")
     private String email;
 
-    @Schema(description = "Phone number", example = "+1234567890")
-    private String phoneNumber;
+    @Schema(description = "Mobile number details")
+    private MobileNumberDTO mobileNumber;
 
     @Schema(description = "Date of birth", example = "1990-05-15")
     private LocalDate dateOfBirth;
 
-    @Schema(description = "Residential address", example = "123 Main Street, City, State 12345")
-    private String address;
+    @Schema(description = "Address details")
+    private AddressDTO address;
 
     @Schema(description = "Aadhaar number (12 digits)", example = "123456789012")
     private String aadhaarNumber;
@@ -57,11 +57,11 @@ public class UserProfileResponse {
     public static UserProfileResponse fromUser(User user) {
         return UserProfileResponse.builder()
                 .id(user.getId())
-                .fullName(user.getFullName())
+                .name(NameDTO.fromEntity(user.getName()))
                 .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
+                .mobileNumber(MobileNumberDTO.fromEntity(user.getMobileNumber()))
                 .dateOfBirth(user.getDateOfBirth())
-                .address(user.getAddress())
+                .address(AddressDTO.fromEntity(user.getAddress()))
                 .aadhaarNumber(user.getAadhaarNumber())
                 .panNumber(user.getPanNumber())
                 .role(user.getRole().name())

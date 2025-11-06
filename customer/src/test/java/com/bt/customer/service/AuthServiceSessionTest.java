@@ -1,5 +1,8 @@
 package com.bt.customer.service;
 
+import com.bt.customer.entity.Name;
+import com.bt.customer.entity.Address;
+import com.bt.customer.entity.MobileNumber;
 import com.bt.customer.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -48,12 +51,31 @@ public class AuthServiceSessionTest {
 
     @Test
     public void testUserWithNewFields() {
+        Name name = Name.builder()
+                .firstName("Test")
+                .lastName("User")
+                .build();
+
+        MobileNumber mobileNumber = MobileNumber.builder()
+                .countryCode("+965")
+                .number("12345678")
+                .build();
+
+        Address address = Address.builder()
+                .line1("Apartment 4B")
+                .line2("Building A")
+                .street("Main Street")
+                .city("Kuwait City")
+                .state("Al Asimah")
+                .pinCode("12345")
+                .build();
+
         User user = User.builder()
                 .id(1L)
                 .email("test@example.com")
-                .fullName("Test User")
-                .phoneNumber("+1234567890")
-                .address("123 Main St, City, Country")
+                .name(name)
+                .mobileNumber(mobileNumber)
+                .address(address)
                 .aadhaarNumber("123456789012")
                 .panNumber("ABCDE1234F")
                 .dateOfBirth(LocalDate.of(1990, 5, 15))
@@ -64,8 +86,8 @@ public class AuthServiceSessionTest {
                 .build();
 
         assertEquals("test@example.com", user.getEmail());
-        assertEquals("Test User", user.getFullName());
-        assertEquals("123 Main St, City, Country", user.getAddress());
+        assertEquals("Test User", user.getName().getFullName());
+        assertEquals("Main Street", user.getAddress().getStreet());
         assertEquals("123456789012", user.getAadhaarNumber());
         assertEquals("ABCDE1234F", user.getPanNumber());
         assertEquals(LocalDate.of(1990, 5, 15), user.getDateOfBirth());

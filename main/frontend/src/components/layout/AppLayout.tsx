@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -336,7 +337,7 @@ function AppSidebar() {
                           : item.title === "My Accounts"
                           ? t("nav.accounts")
                           : item.title === "Admin Dashboard"
-                          ? t("nav.admin.dashboard")
+                          ? t("nav.administration")
                           : item.title === "All Accounts"
                           ? t("nav.allAccounts")
                           : item.title === "Open Account"
@@ -428,25 +429,32 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <header className="flex h-16 items-center gap-4 border-b bg-background shadow-sm px-4 lg:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
+      <AppLayoutContent>{children}</AppLayoutContent>
+    </SidebarProvider>
+  );
+}
+
+function AppLayoutContent({ children }: AppLayoutProps) {
+  const { openMobile, setOpenMobile } = useSidebar();
+
+  return (
+    <div className="flex h-screen w-full">
+      <AppSidebar />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <header className="flex h-16 items-center gap-4 border-b bg-background shadow-sm px-4 lg:hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setOpenMobile(!openMobile)}
+          >
+            {openMobile ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
             <div className="flex items-center gap-2">
               <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground">
                 <CreditCard className="h-3 w-3" />
@@ -454,9 +462,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               <span className="font-semibold">CashCached</span>
             </div>
           </header>
-          <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
-        </div>
+        <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

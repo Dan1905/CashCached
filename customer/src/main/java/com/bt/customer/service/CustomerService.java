@@ -47,8 +47,20 @@ public class CustomerService {
     public UserProfileResponse updateProfile(UpdateProfileRequest request) {
         User user = getCurrentUser();
 
-        if (request.getFullName() != null && !request.getFullName().isBlank()) {
-            user.setFullName(request.getFullName());
+        if (request.getName() != null) {
+            if (user.getName() == null) {
+                user.setName(request.getName().toEntity());
+            } else {
+                if (request.getName().getFirstName() != null && !request.getName().getFirstName().isBlank()) {
+                    user.getName().setFirstName(request.getName().getFirstName());
+                }
+                if (request.getName().getMiddleName() != null) {
+                    user.getName().setMiddleName(request.getName().getMiddleName());
+                }
+                if (request.getName().getLastName() != null && !request.getName().getLastName().isBlank()) {
+                    user.getName().setLastName(request.getName().getLastName());
+                }
+            }
         }
 
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
@@ -59,16 +71,46 @@ public class CustomerService {
             user.setEmail(request.getEmail());
         }
 
-        if (request.getPhoneNumber() != null) {
-            user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getMobileNumber() != null) {
+            if (user.getMobileNumber() == null) {
+                user.setMobileNumber(request.getMobileNumber().toEntity());
+            } else {
+                if (request.getMobileNumber().getCountryCode() != null && !request.getMobileNumber().getCountryCode().isBlank()) {
+                    user.getMobileNumber().setCountryCode(request.getMobileNumber().getCountryCode());
+                }
+                if (request.getMobileNumber().getNumber() != null && !request.getMobileNumber().getNumber().isBlank()) {
+                    user.getMobileNumber().setNumber(request.getMobileNumber().getNumber());
+                }
+            }
         }
 
         if (request.getDateOfBirth() != null) {
             user.setDateOfBirth(request.getDateOfBirth());
         }
 
-        if (request.getAddress() != null && !request.getAddress().isBlank()) {
-            user.setAddress(request.getAddress());
+        if (request.getAddress() != null) {
+            if (user.getAddress() == null) {
+                user.setAddress(request.getAddress().toEntity());
+            } else {
+                if (request.getAddress().getLine1() != null && !request.getAddress().getLine1().isBlank()) {
+                    user.getAddress().setLine1(request.getAddress().getLine1());
+                }
+                if (request.getAddress().getLine2() != null) {
+                    user.getAddress().setLine2(request.getAddress().getLine2());
+                }
+                if (request.getAddress().getStreet() != null && !request.getAddress().getStreet().isBlank()) {
+                    user.getAddress().setStreet(request.getAddress().getStreet());
+                }
+                if (request.getAddress().getCity() != null && !request.getAddress().getCity().isBlank()) {
+                    user.getAddress().setCity(request.getAddress().getCity());
+                }
+                if (request.getAddress().getState() != null && !request.getAddress().getState().isBlank()) {
+                    user.getAddress().setState(request.getAddress().getState());
+                }
+                if (request.getAddress().getPinCode() != null && !request.getAddress().getPinCode().isBlank()) {
+                    user.getAddress().setPinCode(request.getAddress().getPinCode());
+                }
+            }
         }
 
         if (request.getAadhaarNumber() != null && !request.getAadhaarNumber().isBlank()) {

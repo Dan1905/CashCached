@@ -1,6 +1,7 @@
 package com.bt.customer.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
@@ -16,24 +17,24 @@ import java.time.LocalDate;
 @Schema(description = "Request payload for updating user profile")
 public class UpdateProfileRequest {
 
-    @Size(max = 100, message = "Full name cannot exceed 100 characters")
-    @Schema(description = "Updated full name", example = "John Updated Doe")
-    private String fullName;
+    @Valid
+    @Schema(description = "Updated name details")
+    private NameDTO name;
 
     @Email(message = "Email must be valid")
     @Schema(description = "Updated email address", example = "john.updated@example.com")
     private String email;
 
-    @Size(max = 15, message = "Phone number cannot exceed 15 characters")
-    @Schema(description = "Updated phone number", example = "+9876543210")
-    private String phoneNumber;
+    @Valid
+    @Schema(description = "Updated mobile number details")
+    private MobileNumberDTO mobileNumber;
 
     @Schema(description = "Date of birth", example = "1990-05-15")
     private LocalDate dateOfBirth;
 
-    @Size(max = 500, message = "Address cannot exceed 500 characters")
-    @Schema(description = "Residential address", example = "123 Main Street, City, State 12345")
-    private String address;
+    @Valid
+    @Schema(description = "Updated address details")
+    private AddressDTO address;
 
     @Size(min = 12, max = 12, message = "Aadhaar number must be exactly 12 digits")
     @Pattern(regexp = "^[0-9]{12}$", message = "Aadhaar number must contain only digits")

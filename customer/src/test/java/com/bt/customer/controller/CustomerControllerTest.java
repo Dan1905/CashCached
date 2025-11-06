@@ -1,9 +1,17 @@
 package com.bt.customer.controller;
 
+import com.bt.customer.dto.NameDTO;
+import com.bt.customer.dto.MobileNumberDTO;
+import com.bt.customer.dto.AddressDTO;
 import com.bt.customer.dto.UpdateProfileRequest;
 import com.bt.customer.dto.UserProfileResponse;
+import com.bt.customer.entity.Name;
+import com.bt.customer.entity.MobileNumber;
+import com.bt.customer.entity.Address;
 import com.bt.customer.entity.User;
+import com.bt.customer.service.AuthService;
 import com.bt.customer.service.CustomerService;
+import com.bt.customer.service.RedisSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -39,32 +48,75 @@ class CustomerControllerTest {
         @MockitoBean
         private CustomerService customerService;
 
+        @MockitoBean
+        private AuthService authService;
+
+        @MockitoBean
+        private RedisSessionService redisSessionService;
+
+        @MockitoBean
+        private RedisTemplate<String, String> redisTemplate;
+
         private UserProfileResponse profileResponse;
         private UpdateProfileRequest updateRequest;
         private User mockUser;
 
         @BeforeEach
         void setUp() {
+                NameDTO nameDTO = NameDTO.builder()
+                                .firstName("Test")
+                                .lastName("User")
+                                .build();
+
+                MobileNumberDTO mobileDTO = MobileNumberDTO.builder()
+                                .countryCode("+965")
+                                .number("12345678")
+                                .build();
+
+                AddressDTO addressDTO = AddressDTO.builder()
+                                .line1("Apartment 4B")
+                                .street("Main Street")
+                                .city("Kuwait City")
+                                .state("Al Asimah")
+                                .pinCode("12345")
+                                .build();
+
                 profileResponse = UserProfileResponse.builder()
                                 .id(1L)
-                                .fullName("Test User")
+                                .name(nameDTO)
                                 .email("test@example.com")
-                                .phoneNumber("+1234567890")
+                                .mobileNumber(mobileDTO)
+                                .address(addressDTO)
                                 .role("CUSTOMER")
                                 .active(true)
                                 .createdAt(LocalDateTime.now())
                                 .updatedAt(LocalDateTime.now())
                                 .build();
 
+                NameDTO updatedNameDTO = NameDTO.builder()
+                                .firstName("Updated")
+                                .lastName("Name")
+                                .build();
+
+                MobileNumberDTO updatedMobileDTO = MobileNumberDTO.builder()
+                                .countryCode("+965")
+                                .number("98765432")
+                                .build();
+
                 updateRequest = UpdateProfileRequest.builder()
-                                .fullName("Updated Name")
+                                .name(updatedNameDTO)
                                 .email("updated@example.com")
-                                .phoneNumber("+9876543210")
+                                .mobileNumber(updatedMobileDTO)
+                                .build();
+
+                Name name = Name.builder()
+                                .firstName("Test")
+                                .lastName("User")
                                 .build();
 
                 mockUser = User.builder()
                                 .id(1L)
-                                .fullName("Test User")
+                                .name(name)
                                 .email("test@example.com")
                                 .role(User.Role.CUSTOMER)
                                 .build();
@@ -79,7 +131,6 @@ class CustomerControllerTest {
                 mockMvc.perform(get("/api/customer/profile")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.username").value("testuser"))
                                 .andExpect(jsonPath("$.email").value("test@example.com"))
                                 .andExpect(jsonPath("$.role").value("CUSTOMER"));
 
@@ -90,11 +141,16 @@ class CustomerControllerTest {
         @WithMockUser(username = "admin", roles = { "ADMIN" })
         @DisplayName("Should get all customers when user is ADMIN")
         void shouldGetAllCustomersForAdmin() throws Exception {
+                NameDTO name2 = NameDTO.builder()
+                                .firstName("Customer")
+                                .lastName("Two")
+                                .build();
+
                 List<UserProfileResponse> customers = Arrays.asList(
                                 profileResponse,
                                 UserProfileResponse.builder()
                                                 .id(2L)
-                                                .fullName("Customer Two")
+                                                .name(name2)
                                                 .email("customer2@example.com")
                                                 .role("CUSTOMER")
                                                 .build());
@@ -105,8 +161,8 @@ class CustomerControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$").isArray())
-                                .andExpect(jsonPath("$[0].username").value("testuser"))
-                                .andExpect(jsonPath("$[1].username").value("customer2"));
+                                .andExpect(jsonPath("$[0].email").value("test@example.com"))
+                                .andExpect(jsonPath("$[1].email").value("customer2@example.com"));
 
                 verify(customerService, times(1)).getAllCustomers();
         }
@@ -130,11 +186,21 @@ class CustomerControllerTest {
         @WithMockUser(username = "testuser", roles = { "CUSTOMER" })
         @DisplayName("Should update profile successfully")
         void shouldUpdateProfileSuccessfully() throws Exception {
+                NameDTO updatedNameDTO = NameDTO.builder()
+                                .firstName("Updated")
+                                .lastName("Name")
+                                .build();
+
+                MobileNumberDTO updatedMobileDTO = MobileNumberDTO.builder()
+                                .countryCode("+965")
+                                .number("98765432")
+                                .build();
+
                 UserProfileResponse updatedResponse = UserProfileResponse.builder()
                                 .id(1L)
-                                .fullName("Updated Name")
+                                .name(updatedNameDTO)
                                 .email("updated@example.com")
-                                .phoneNumber("+9876543210")
+                                .mobileNumber(updatedMobileDTO)
                                 .role("CUSTOMER")
                                 .build();
 
@@ -144,7 +210,7 @@ class CustomerControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(updateRequest)))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.fullName").value("Updated Name"))
+                                .andExpect(jsonPath("$.name.firstName").value("Updated"))
                                 .andExpect(jsonPath("$.email").value("updated@example.com"));
 
                 verify(customerService, times(1)).updateProfile(any(UpdateProfileRequest.class));
@@ -174,7 +240,7 @@ class CustomerControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OPERATIONAL"))
                                 .andExpect(jsonPath("$.role").value("CUSTOMER"))
-                                .andExpect(jsonPath("$.username").value("testuser"));
+                                .andExpect(jsonPath("$.email").value("test@example.com"));
 
                 verify(customerService, times(1)).getCurrentUserRole();
                 verify(customerService, times(1)).getCurrentUser();

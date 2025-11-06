@@ -2,11 +2,16 @@ package com.bt.customer.controller;
 
 import com.bt.customer.dto.AuthResponse;
 import com.bt.customer.dto.LoginRequest;
+import com.bt.customer.dto.NameDTO;
+import com.bt.customer.dto.MobileNumberDTO;
+import com.bt.customer.dto.AddressDTO;
 import com.bt.customer.dto.RegisterRequest;
 import com.bt.customer.entity.User;
 import com.bt.customer.exception.InvalidCredentialsException;
 import com.bt.customer.exception.UserAlreadyExistsException;
 import com.bt.customer.service.AuthService;
+import com.bt.customer.service.MagicLinkService;
+import com.bt.customer.service.RedisSessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,17 +43,46 @@ class AuthControllerTest {
         @MockitoBean
         private AuthService authService;
 
+        @MockitoBean
+        private MagicLinkService magicLinkService;
+
+        @MockitoBean
+        private RedisSessionService redisSessionService;
+
+        @MockitoBean
+        private RedisTemplate<String, String> redisTemplate;
+
         private RegisterRequest registerRequest;
         private LoginRequest loginRequest;
         private AuthResponse authResponse;
 
         @BeforeEach
         void setUp() {
+                NameDTO nameDTO = NameDTO.builder()
+                                .firstName("Test")
+                                .lastName("User")
+                                .build();
+
+                MobileNumberDTO mobileDTO = MobileNumberDTO.builder()
+                                .countryCode("+965")
+                                .number("12345678")
+                                .build();
+
+                AddressDTO addressDTO = AddressDTO.builder()
+                                .line1("Apartment 4B")
+                                .street("Main Street")
+                                .city("Kuwait City")
+                                .state("Al Asimah")
+                                .pinCode("12345")
+                                .country("Kuwait")
+                                .build();
+
                 registerRequest = RegisterRequest.builder()
                                 .password("password123")
-                                .fullName("Test User")
+                                .name(nameDTO)
                                 .email("test@example.com")
-                                .phoneNumber("+1234567890")
+                                .mobileNumber(mobileDTO)
+                                .address(addressDTO)
                                 .role(User.Role.CUSTOMER)
                                 .build();
 
@@ -75,7 +110,7 @@ class AuthControllerTest {
                                 .content(objectMapper.writeValueAsString(registerRequest)))
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.token").value("sample.jwt.token"))
-                                .andExpect(jsonPath("$.username").value("testuser"))
+                                .andExpect(jsonPath("$.email").value("test@example.com"))
                                 .andExpect(jsonPath("$.role").value("CUSTOMER"));
 
                 verify(authService, times(1)).register(any(RegisterRequest.class));
@@ -115,7 +150,7 @@ class AuthControllerTest {
                                 .content(objectMapper.writeValueAsString(loginRequest)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.token").value("sample.jwt.token"))
-                                .andExpect(jsonPath("$.username").value("testuser"));
+                                .andExpect(jsonPath("$.email").value("test@example.com"));
 
                 verify(authService, times(1)).login(any(LoginRequest.class));
         }
@@ -129,7 +164,7 @@ class AuthControllerTest {
                 mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(loginRequest)))
-                                .andExpect(status().isUnauthorized())
+                                .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.message").value("Invalid username or password"));
         }
 
