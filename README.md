@@ -1,4 +1,4 @@
-# BT Bank – Full Stack Dev Runner (hawktuah)
+# BT Bank – Full Stack Dev Runner 
 
 This repo contains Spring Boot microservices and a Vite + React frontend. This guide shows how to start everything on Windows using the provided scripts.
 
